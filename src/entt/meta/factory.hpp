@@ -55,18 +55,32 @@ protected:
         bucket = parent;
     }
 
-    void conv(const id_type id, meta_conv_node node) {
-        details->conv.insert_or_assign(id, node);
+    void conv(meta_conv_node node) {
         invoke = nullptr;
         bucket = parent;
+
+        for(std::size_t pos{}, last = details->conv.size(); pos != last; ++pos) {
+            if(details->conv[pos].type == node.type) {
+                details->conv[pos] = node;
+                return;
+            }
+        }
+
+        details->conv.push_back(node);
     }
 
     void ctor(meta_ctor_node node) {
-        std::size_t pos{};
-        for(const std::size_t last = details->ctor.size(); (pos != last) && (details->ctor[pos].arg != node.arg); ++pos) {}
-        (pos == details->ctor.size()) ? details->ctor.emplace_back(node) : (details->ctor[pos] = node);
         invoke = nullptr;
         bucket = parent;
+
+        for(std::size_t pos{}, last = details->ctor.size(); pos != last; ++pos) {
+            if(details->ctor[pos].arg == node.arg) {
+                details->ctor[pos] = node;
+                return;
+            }
+        }
+
+        details->ctor.push_back(node);
     }
 
     void dtor(meta_dtor_node node) {
@@ -116,7 +130,7 @@ protected:
         } else if(invoke == nullptr) {
             details->data[bucket].prop[node.id] = std::move(node);
         } else {
-            find_overload()->prop[node.id   ] = std::move(node);
+            find_overload()->prop[node.id] = std::move(node);
         }
     }
 
@@ -245,7 +259,7 @@ public:
     auto conv() noexcept {
         using conv_type = std::remove_cv_t<std::remove_reference_t<std::invoke_result_t<decltype(Candidate), Type &>>>;
         auto *const op = +[](const meta_ctx &area, const void *instance) { return forward_as_meta(area, std::invoke(Candidate, *static_cast<const Type *>(instance))); };
-        base_type::conv(type_id<conv_type>().hash(), internal::meta_conv_node{op});
+        base_type::conv(internal::meta_conv_node{type_id<conv_type>().hash(), op});
         return *this;
     }
 
@@ -262,7 +276,7 @@ public:
     meta_factory conv() noexcept {
         using conv_type = std::remove_cv_t<std::remove_reference_t<To>>;
         auto *const op = +[](const meta_ctx &area, const void *instance) { return forward_as_meta(area, static_cast<To>(*static_cast<const Type *>(instance))); };
-        base_type::conv(type_id<conv_type>().hash(), internal::meta_conv_node{op});
+        base_type::conv(internal::meta_conv_node{type_id<conv_type>().hash(), op});
         return *this;
     }
 

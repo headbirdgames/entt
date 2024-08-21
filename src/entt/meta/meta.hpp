@@ -1165,7 +1165,25 @@ class meta_type {
 
                     if(const auto &info = other.info(); info == type.info()) {
                         ++match;
-                    } else if(!((type.node.details && (type.node.details->base.contains(info.hash()) || type.node.details->conv.contains(info.hash()))) || (type.node.conversion_helper && other.node.conversion_helper))) {
+                    } else if(type.node.conversion_helper && other.node.conversion_helper) {
+                        continue;
+                    } else if(!type.node.details) {
+                        break;
+                    } else {
+                        bool can_continue = false;
+
+                        if(type.node.details->base.contains(info.hash())) {
+                            continue;
+                        }
+
+                        for(std::size_t pos{}, last = type.node.details->conv.size(); !can_continue && pos != last; ++pos) {
+                            can_continue = (type.node.details->conv[pos].type == info.hash());
+                        }
+
+                        if(can_continue) {
+                            continue;
+                        }
+
                         break;
                     }
                 }
