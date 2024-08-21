@@ -90,14 +90,20 @@ protected:
     }
 
     void data(meta_data_node node) {
-        if(auto it = details->data.find(node.id); it == details->data.end()) {
-            details->data.insert_or_assign(node.id, std::move(node));
-        } else if(it->second.set != node.set || it->second.get != node.get) {
-            it->second = std::move(node);
-        }
-
         invoke = nullptr;
         bucket = node.id;
+
+        for(std::size_t pos{}, last = details->data.size(); pos != last; ++pos) {
+            if(details->data[pos].id == node.id) {
+                if(details->data[pos].set != node.set || details->data[pos].get != node.get) {
+                    details->data[pos] = std::move(node);
+                }
+
+                return;
+            }
+        }
+
+        details->data.push_back(std::move(node));
     }
 
     void func(meta_func_node node) {
@@ -130,7 +136,12 @@ protected:
         if(bucket == parent) {
             prop = &details->prop;
         } else if(invoke == nullptr) {
-            prop = &details->data[bucket].prop;
+            for(auto &&elem: details->data) {
+                if(elem.id == bucket) {
+                    prop = &elem.prop;
+                    break;
+                }
+            }
         } else {
             prop = &find_overload()->prop;
         }
@@ -149,7 +160,12 @@ protected:
         if(bucket == parent) {
             meta_context::from(*ctx).value[bucket].traits |= value;
         } else if(invoke == nullptr) {
-            details->data[bucket].traits |= value;
+            for(auto &&elem: details->data) {
+                if(elem.id == bucket) {
+                    elem.traits |= value;
+                    break;
+                }
+            }
         } else {
             find_overload()->traits |= value;
         }
@@ -159,7 +175,12 @@ protected:
         if(bucket == parent) {
             meta_context::from(*ctx).value[bucket].custom = std::move(node);
         } else if(invoke == nullptr) {
-            details->data[bucket].custom = std::move(node);
+            for(auto &&elem: details->data) {
+                if(elem.id == bucket) {
+                    elem.custom = std::move(node);
+                    break;
+                }
+            }
         } else {
             find_overload()->custom = std::move(node);
         }
