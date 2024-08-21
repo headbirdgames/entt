@@ -31,7 +31,14 @@ class basic_meta_factory {
     using invoke_type = std::remove_pointer_t<decltype(meta_func_node::invoke)>;
 
     auto *find_overload() {
-        auto *curr = &details->func[bucket];
+        meta_func_node *curr = nullptr;
+
+        for(auto &&elem: details->func) {
+            if(elem.id == bucket) {
+                curr = &elem;
+                break;
+            }
+        }
 
         while(curr->invoke != invoke) {
             curr = curr->next.get();
@@ -107,27 +114,27 @@ protected:
     }
 
     void func(meta_func_node node) {
-        if(auto it = details->func.find(node.id); it == details->func.end()) {
-            auto &&elem = details->func.insert_or_assign(node.id, std::move(node)).first;
-            invoke = elem->second.invoke;
-            bucket = node.id;
-        } else {
-            auto *curr = &it->second;
+        invoke = node.invoke;
+        bucket = node.id;
 
-            while(curr->invoke != node.invoke && curr->next) {
-                curr = curr->next.get();
+        for(std::size_t pos{}, last = details->func.size(); pos != last; ++pos) {
+            if(details->func[pos].id == node.id) {
+                auto *curr = &details->func[pos];
+
+                while(curr->invoke != node.invoke && curr->next) {
+                    curr = curr->next.get();
+                }
+
+                if(curr->invoke != node.invoke) {
+                    curr->next = std::make_shared<meta_func_node>();
+                    *curr->next = std::move(node);
+                }
+
+                return;
             }
-
-            if(curr->invoke == node.invoke) {
-                invoke = curr->invoke;
-            } else {
-                invoke = node.invoke;
-                curr->next = std::make_shared<meta_func_node>();
-                *curr->next = std::move(node);
-            }
-
-            bucket = node.id;
         }
+
+        details->func.push_back(std::move(node));
     }
 
     void prop(meta_prop_node node) {
