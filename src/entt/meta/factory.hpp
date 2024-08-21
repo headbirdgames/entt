@@ -61,8 +61,10 @@ protected:
         bucket = parent;
     }
 
-    void ctor(const id_type id, meta_ctor_node node) {
-        details->ctor.insert_or_assign(id, node);
+    void ctor(meta_ctor_node node) {
+        std::size_t pos{};
+        for(const std::size_t last = details->ctor.size(); (pos != last) && (details->ctor[pos].arg != node.arg); ++pos) {}
+        (pos == details->ctor.size()) ? details->ctor.push_back(node) : (details->ctor[pos] = node);
         invoke = nullptr;
         bucket = parent;
     }
@@ -282,7 +284,7 @@ public:
         using descriptor = meta_function_helper_t<Type, decltype(Candidate)>;
         static_assert(Policy::template value<typename descriptor::return_type>, "Invalid return type for the given policy");
         static_assert(std::is_same_v<std::remove_cv_t<std::remove_reference_t<typename descriptor::return_type>>, Type>, "The function doesn't return an object of the required type");
-        base_type::ctor(type_id<typename descriptor::args_type>().hash(), internal::meta_ctor_node{descriptor::args_type::size, &meta_arg<typename descriptor::args_type>, &meta_construct<Type, Candidate, Policy>});
+        base_type::ctor(internal::meta_ctor_node{descriptor::args_type::size, &meta_arg<typename descriptor::args_type>, &meta_construct<Type, Candidate, Policy>});
         return *this;
     }
 
@@ -301,7 +303,7 @@ public:
         // default constructor is already implicitly generated, no need for redundancy
         if constexpr(sizeof...(Args) != 0u) {
             using descriptor = meta_function_helper_t<Type, Type (*)(Args...)>;
-            base_type::ctor(type_id<typename descriptor::args_type>().hash(), internal::meta_ctor_node{descriptor::args_type::size, &meta_arg<typename descriptor::args_type>, &meta_construct<Type, Args...>});
+            base_type::ctor(internal::meta_ctor_node{descriptor::args_type::size, &meta_arg<typename descriptor::args_type>, &meta_construct<Type, Args...>});
         }
 
         return *this;
