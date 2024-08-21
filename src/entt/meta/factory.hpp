@@ -64,7 +64,7 @@ protected:
     void ctor(meta_ctor_node node) {
         std::size_t pos{};
         for(const std::size_t last = details->ctor.size(); (pos != last) && (details->ctor[pos].arg != node.arg); ++pos) {}
-        (pos == details->ctor.size()) ? details->ctor.push_back(node) : (details->ctor[pos] = node);
+        (pos == details->ctor.size()) ? details->ctor.emplace_back(node) : (details->ctor[pos] = node);
         invoke = nullptr;
         bucket = parent;
     }
@@ -116,7 +116,7 @@ protected:
         } else if(invoke == nullptr) {
             details->data[bucket].prop[node.id] = std::move(node);
         } else {
-            find_overload()->prop[node.id] = std::move(node);
+            find_overload()->prop[node.id   ] = std::move(node);
         }
     }
 
