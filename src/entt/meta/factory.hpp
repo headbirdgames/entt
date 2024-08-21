@@ -56,8 +56,8 @@ protected:
         elem.id = id;
     }
 
-    void base(const id_type id, meta_base_node node) {
-        details->base.insert_or_assign(id, node);
+    void base(meta_base_node node) {
+        details->base.insert_or_assign(node.id, node);
         invoke = nullptr;
         bucket = parent;
     }
@@ -278,7 +278,7 @@ public:
     meta_factory base() noexcept {
         static_assert(!std::is_same_v<Type, Base> && std::is_base_of_v<Base, Type>, "Invalid base type");
         auto *const op = +[](const void *instance) noexcept { return static_cast<const void *>(static_cast<const Base *>(static_cast<const Type *>(instance))); };
-        base_type::base(type_id<Base>().hash(), internal::meta_base_node{&internal::resolve<Base>, op});
+        base_type::base(internal::meta_base_node{type_id<Base>().hash(), &internal::resolve<Base>, op});
         return *this;
     }
 

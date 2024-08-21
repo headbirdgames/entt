@@ -75,6 +75,7 @@ struct meta_prop_node {
 };
 
 struct meta_base_node {
+    id_type id{};
     meta_type_node (*type)(const meta_context &) noexcept {};
     const void *(*cast)(const void *) noexcept {};
 };
