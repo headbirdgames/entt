@@ -75,22 +75,22 @@ protected:
         bucket = parent;
     }
 
-    void data(const id_type id, meta_data_node node) {
-        if(auto it = details->data.find(id); it == details->data.end()) {
-            details->data.insert_or_assign(id, std::move(node));
+    void data(meta_data_node node) {
+        if(auto it = details->data.find(node.id); it == details->data.end()) {
+            details->data.insert_or_assign(node.id, std::move(node));
         } else if(it->second.set != node.set || it->second.get != node.get) {
             it->second = std::move(node);
         }
 
         invoke = nullptr;
-        bucket = id;
+        bucket = node.id;
     }
 
-    void func(const id_type id, meta_func_node node) {
-        if(auto it = details->func.find(id); it == details->func.end()) {
-            auto &&elem = details->func.insert_or_assign(id, std::move(node)).first;
+    void func(meta_func_node node) {
+        if(auto it = details->func.find(node.id); it == details->func.end()) {
+            auto &&elem = details->func.insert_or_assign(node.id, std::move(node)).first;
             invoke = elem->second.invoke;
-            bucket = id;
+            bucket = node.id;
         } else {
             auto *curr = &it->second;
 
@@ -106,17 +106,17 @@ protected:
                 *curr->next = std::move(node);
             }
 
-            bucket = id;
+            bucket = node.id;
         }
     }
 
-    void prop(const id_type key, meta_prop_node value) {
+    void prop(meta_prop_node node) {
         if(bucket == parent) {
-            details->prop[key] = std::move(value);
+            details->prop[node.key] = std::move(node);
         } else if(invoke == nullptr) {
-            details->data[bucket].prop[key] = std::move(value);
+            details->data[bucket].prop[node.key] = std::move(node);
         } else {
-            find_overload()->prop[key] = std::move(value);
+            find_overload()->prop[node.key] = std::move(node);
         }
     }
 
@@ -180,8 +180,8 @@ class meta_factory: private internal::basic_meta_factory {
         static_assert(Policy::template value<data_type>, "Invalid return type for the given policy");
 
         base_type::data(
-            id,
             internal::meta_data_node{
+                id,
                 /* this is never static */
                 (std::is_member_object_pointer_v<decltype(value_list_element_v<Index, Setter>)> && ... && std::is_const_v<std::remove_reference_t<data_type>>) ? internal::meta_traits::is_const : internal::meta_traits::is_none,
                 Setter::size,
@@ -355,8 +355,8 @@ public:
             static_assert(Policy::template value<data_type>, "Invalid return type for the given policy");
 
             base_type::data(
-                id,
                 internal::meta_data_node{
+                    id,
                     /* this is never static */
                     std::is_const_v<std::remove_reference_t<data_type>> ? internal::meta_traits::is_const : internal::meta_traits::is_none,
                     1u,
@@ -374,8 +374,8 @@ public:
             }
 
             base_type::data(
-                id,
                 internal::meta_data_node{
+                    id,
                     ((std::is_same_v<Type, std::remove_cv_t<std::remove_reference_t<data_type>>> || std::is_const_v<std::remove_reference_t<data_type>>) ? internal::meta_traits::is_const : internal::meta_traits::is_none) | internal::meta_traits::is_static,
                     1u,
                     &internal::resolve<std::remove_cv_t<std::remove_reference_t<data_type>>>,
@@ -414,8 +414,8 @@ public:
 
         if constexpr(std::is_same_v<decltype(Setter), std::nullptr_t>) {
             base_type::data(
-                id,
                 internal::meta_data_node{
+                    id,
                     /* this is never static */
                     internal::meta_traits::is_const,
                     0u,
@@ -427,8 +427,8 @@ public:
             using args_type = typename meta_function_helper_t<Type, decltype(Setter)>::args_type;
 
             base_type::data(
-                id,
                 internal::meta_data_node{
+                    id,
                     /* this is never static nor const */
                     internal::meta_traits::is_none,
                     1u,
@@ -483,8 +483,8 @@ public:
         static_assert(Policy::template value<typename descriptor::return_type>, "Invalid return type for the given policy");
 
         base_type::func(
-            id,
             internal::meta_func_node{
+                id,
                 (descriptor::is_const ? internal::meta_traits::is_const : internal::meta_traits::is_none) | (descriptor::is_static ? internal::meta_traits::is_static : internal::meta_traits::is_none),
                 descriptor::args_type::size,
                 &internal::resolve<std::conditional_t<std::is_same_v<Policy, as_void_t>, void, std::remove_cv_t<std::remove_reference_t<typename descriptor::return_type>>>>,
@@ -507,9 +507,9 @@ public:
     template<typename... Value>
     meta_factory prop(id_type id, [[maybe_unused]] Value &&...value) {
         if constexpr(sizeof...(Value) == 0u) {
-            base_type::prop(id, internal::meta_prop_node{&internal::resolve<void>});
+            base_type::prop(internal::meta_prop_node{id, &internal::resolve<void>});
         } else {
-            base_type::prop(id, internal::meta_prop_node{&internal::resolve<std::decay_t<Value>>..., std::make_shared<std::decay_t<Value>>(std::forward<Value>(value))...});
+            base_type::prop(internal::meta_prop_node{id, &internal::resolve<std::decay_t<Value>>..., std::make_shared<std::decay_t<Value>>(std::forward<Value>(value))...});
         }
 
         return *this;
