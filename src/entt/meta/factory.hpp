@@ -112,11 +112,11 @@ protected:
 
     void prop(meta_prop_node node) {
         if(bucket == parent) {
-            details->prop[node.key] = std::move(node);
+            details->prop[node.id] = std::move(node);
         } else if(invoke == nullptr) {
-            details->data[bucket].prop[node.key] = std::move(node);
+            details->data[bucket].prop[node.id] = std::move(node);
         } else {
-            find_overload()->prop[node.key] = std::move(node);
+            find_overload()->prop[node.id] = std::move(node);
         }
     }
 

@@ -69,7 +69,7 @@ struct meta_custom_node {
 };
 
 struct meta_prop_node {
-    id_type key{};
+    id_type id{};
     meta_type_node (*type)(const meta_context &) noexcept {};
     std::shared_ptr<void> value{};
 };
