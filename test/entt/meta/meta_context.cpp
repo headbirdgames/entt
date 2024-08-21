@@ -195,9 +195,6 @@ TEST_F(MetaContext, MetaType) {
     ASSERT_EQ(global, entt::resolve("foo"_hs));
     ASSERT_EQ(local, entt::resolve(ctx(), "bar"_hs));
 
-    ASSERT_EQ(global.id(), "foo"_hs);
-    ASSERT_EQ(local.id(), "bar"_hs);
-
     clazz instance{'c', 8};
     const argument value{2};
 

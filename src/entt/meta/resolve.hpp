@@ -58,9 +58,9 @@ template<typename Type>
  * @return The meta type associated with the given identifier, if any.
  */
 [[nodiscard]] inline meta_type resolve(const meta_ctx &ctx, const id_type id) noexcept {
-    for(auto &&curr: resolve(ctx)) {
-        if(curr.second.id() == id) {
-            return curr.second;
+    for(auto &&elem: internal::meta_context::from(ctx).value) {
+        if(elem.second.id == id) {
+            return meta_type{ctx, elem.second};
         }
     }
 

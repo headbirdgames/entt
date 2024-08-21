@@ -1248,7 +1248,7 @@ public:
      * @brief Returns the identifier assigned to a type.
      * @return The identifier assigned to the type.
      */
-    [[nodiscard]] id_type id() const noexcept {
+    [[deprecated("no longer supported")]] [[nodiscard]] id_type id() const noexcept {
         return node.id;
     }
 
