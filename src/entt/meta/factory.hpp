@@ -57,9 +57,17 @@ protected:
     }
 
     void base(meta_base_node node) {
-        details->base.insert_or_assign(node.id, node);
         invoke = nullptr;
         bucket = parent;
+
+        for(std::size_t pos{}, last = details->base.size(); pos != last; ++pos) {
+            if(details->base[pos].id == node.id) {
+                details->base[pos] = node;
+                return;
+            }
+        }
+
+        details->base.push_back(node);
     }
 
     void conv(meta_conv_node node) {

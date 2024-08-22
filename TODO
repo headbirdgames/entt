@@ -47,3 +47,4 @@ TODO:
 * organizer support to groups
 * meta factory: share code and cleanup after the map-to-vector rework
 * meta range: move id to meta objects and return plain types (?), then remove id from meta base and de-deprecate meta_type::id :)
+* update natvis for meta, many nodes changes due to the map-to-vector switch

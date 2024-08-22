@@ -1182,8 +1182,8 @@ class meta_type {
                     } else {
                         bool can_continue = false;
 
-                        if(type.node.details->base.contains(info.hash())) {
-                            continue;
+                        for(std::size_t pos{}, last = type.node.details->base.size(); !can_continue && pos != last; ++pos) {
+                            can_continue = (type.node.details->base[pos].id == info.hash());
                         }
 
                         for(std::size_t pos{}, last = type.node.details->conv.size(); !can_continue && pos != last; ++pos) {
