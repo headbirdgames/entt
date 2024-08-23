@@ -68,7 +68,7 @@ protected:
         bucket = parent;
 
         for(std::size_t pos{}, last = details->base.size(); pos != last; ++pos) {
-            if(details->base[pos].id == node.id) {
+            if(details->base[pos].type == node.type) {
                 details->base[pos] = node;
                 return;
             }
