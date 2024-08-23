@@ -1175,26 +1175,20 @@ class meta_type {
 
                     if(const auto &info = other.info(); info == type.info()) {
                         ++match;
-                    } else if(type.node.conversion_helper && other.node.conversion_helper) {
-                        continue;
-                    } else if(!type.node.details) {
-                        break;
                     } else {
-                        bool can_continue = false;
+                        bool can_continue = (type.node.conversion_helper && other.node.conversion_helper);
 
-                        for(std::size_t pos{}, last = type.node.details->base.size(); !can_continue && pos != last; ++pos) {
+                        for(std::size_t pos{}, last = type.node.details ? type.node.details->base.size() : size_type{}; pos != last && !can_continue; ++pos) {
                             can_continue = (type.node.details->base[pos].id == info.hash());
                         }
 
-                        for(std::size_t pos{}, last = type.node.details->conv.size(); !can_continue && pos != last; ++pos) {
+                        for(std::size_t pos{}, last = type.node.details ? type.node.details->conv.size() : size_type{}; pos != last && !can_continue; ++pos) {
                             can_continue = (type.node.details->conv[pos].type == info.hash());
                         }
 
-                        if(can_continue) {
-                            continue;
+                        if(!can_continue) {
+                            break;
                         }
-
-                        break;
                     }
                 }
                 // NOLINTEND(cppcoreguidelines-pro-bounds-pointer-arithmetic)
