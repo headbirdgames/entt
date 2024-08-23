@@ -1178,12 +1178,12 @@ class meta_type {
                     } else {
                         bool can_continue = (type.node.conversion_helper && other.node.conversion_helper);
 
-                        for(std::size_t next{}, last = type.node.details ? type.node.details->base.size() : size_type{}; next != last && !can_continue; ++next) {
-                            can_continue = (type.node.details->base[next].id == info.hash());
+                        for(std::size_t idx{}, last = type.node.details ? type.node.details->base.size() : size_type{}; idx != last && !can_continue; ++idx) {
+                            can_continue = (type.node.details->base[idx].id == info.hash());
                         }
 
-                        for(std::size_t next{}, last = type.node.details ? type.node.details->conv.size() : size_type{}; next != last && !can_continue; ++next) {
-                            can_continue = (type.node.details->conv[next].type == info.hash());
+                        for(std::size_t idx{}, last = type.node.details ? type.node.details->conv.size() : size_type{}; idx != last && !can_continue; ++idx) {
+                            can_continue = (type.node.details->conv[idx].type == info.hash());
                         }
 
                         if(!can_continue) {
