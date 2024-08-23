@@ -30,15 +30,22 @@ namespace internal {
 class basic_meta_factory {
     using invoke_type = std::remove_pointer_t<decltype(meta_func_node::invoke)>;
 
-    auto *find_overload() {
-        meta_func_node *curr = nullptr;
+    template<typename Type>
+    auto *find_member(Type &from) {
+        typename Type::value_type *curr = nullptr;
 
-        for(auto &&elem: details->func) {
+        for(auto &&elem: from) {
             if(elem.id == bucket) {
                 curr = &elem;
                 break;
             }
         }
+
+        return curr;
+    }
+
+    auto *find_overload() {
+        meta_func_node *curr = find_member(details->func);
 
         while(curr->invoke != invoke) {
             curr = curr->next.get();
@@ -151,12 +158,7 @@ protected:
         if(bucket == parent) {
             prop = &details->prop;
         } else if(invoke == nullptr) {
-            for(auto &&elem: details->data) {
-                if(elem.id == bucket) {
-                    prop = &elem.prop;
-                    break;
-                }
-            }
+            prop = &find_member(details->data)->prop;
         } else {
             prop = &find_overload()->prop;
         }
@@ -175,12 +177,7 @@ protected:
         if(bucket == parent) {
             meta_context::from(*ctx).value[bucket].traits |= value;
         } else if(invoke == nullptr) {
-            for(auto &&elem: details->data) {
-                if(elem.id == bucket) {
-                    elem.traits |= value;
-                    break;
-                }
-            }
+            find_member(details->data)->traits |= value;
         } else {
             find_overload()->traits |= value;
         }
@@ -190,12 +187,7 @@ protected:
         if(bucket == parent) {
             meta_context::from(*ctx).value[bucket].custom = std::move(node);
         } else if(invoke == nullptr) {
-            for(auto &&elem: details->data) {
-                if(elem.id == bucket) {
-                    elem.custom = std::move(node);
-                    break;
-                }
-            }
+            find_member(details->data)->custom = std::move(node);
         } else {
             find_overload()->custom = std::move(node);
         }
